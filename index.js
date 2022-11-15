@@ -1,16 +1,19 @@
-const express = require('express');
-const db = require('./models');
+
+const express = require("express");
+const cors = require("cors");
+const PORT = 8000;
 const server = express();
-const port = 3000;
+const db = require("./models");
+const bearerToken = require("express-bearer-token");
 
-server.get('/', (req, res) => {
-  res.send('connected');
+server.use(express.json());
+server.use(cors());
+server.use(bearerToken());
+
+const { authRoutes } = require("./routers");
+server.use("/auth", authRoutes);
+
+server.listen(PORT, () => {
+  // db.sequelize.sync({ alter: true });
+  console.log("Success Running at PORT: " + PORT);
 });
-
-server.listen(port, () => {
-  console.log(`Listening on port ${port}`);
-});
-
-const book = db.Book;
-
-//book.sync({ force: true });
