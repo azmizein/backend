@@ -15,9 +15,10 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init({
     nim: {
-      type:DataTypes.INTEGER,
-      allowNull: false,
-      unique: true,
+      type:DataTypes.STRING,
+      primaryKey: true,
+      allowNull:false,
+      defaultValue: "0",
     },
     username: {
      type: DataTypes.STRING,
@@ -26,12 +27,14 @@ module.exports = (sequelize, DataTypes) => {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: {
+        msg: 'Oops. Looks like you already have an account with this email address. Please try to login.',
+    },
     },
     password: {
       type:DataTypes.STRING,
       allowNull: false,
-    }
+    },
   }, {
     sequelize,
     modelName: 'User',

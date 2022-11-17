@@ -1,7 +1,7 @@
 
 const express = require("express");
 const cors = require("cors");
-const PORT = 8000;
+const PORT = 2000;
 const server = express();
 const db = require("./models");
 const bearerToken = require("express-bearer-token");
@@ -14,6 +14,6 @@ const { authRoutes } = require("./routers");
 server.use("/auth", authRoutes);
 
 server.listen(PORT, () => {
-  // db.sequelize.sync({ alter: true });
+  //db.sequelize.sync({ force: true });
   console.log("Success Running at PORT: " + PORT);
 });

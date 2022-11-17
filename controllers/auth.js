@@ -10,9 +10,10 @@ const handlebars = require("handlebars");
 module.exports = {
   register: async (req, res) => {
     try {
-      const { nim, username, email, password } = req.body;
+      const { username, email, password } = req.body;
 
       if (password.length < 8) throw "password min 8 character"
+      if (email == user.email) throw "Email Already Taken"
 
       const salt = await bcrypt.genSalt(10);
 
@@ -20,13 +21,12 @@ module.exports = {
       //   console.log(hashPass);
 
       await user.create({
-        nim,
         username,
         email,
         password: hashPass,
       });
 
-      const token = jwt.sign({ id: user.id }, "azmi", { expiresIn: "1h" });
+      const token = jwt.sign({ nim: user.nim }, "azmi", { expiresIn: "1h" });
 
       const tempEmail = fs.readFileSync("./template/email.html", "utf-8");
       const tempCompile = handlebars.compile(tempEmail);
@@ -52,6 +52,7 @@ module.exports = {
     try {
       const { nim, password } = req.body;
 
+      console.log(req.body)
       const nimExist = await user.findOne({
         where: {
           nim,
@@ -65,19 +66,21 @@ module.exports = {
       if (!isValid) throw "nim or password incorrect";
 
       const token = jwt.sign(
-        { username: nimExist.username, id: nimExist.id },
+        { username: nimExist.username, nim: nimExist.nim },
         "azmi"
       );
 
       res.status(200).send({
         user: {
           username: nimExist.username,
-          id: nimExist.id,
+          nim: nimExist.nim,
         },
         token,
       });
     } catch (err) {
+      console.log(err)
       res.status(400).send(err);
+    
     }
   },
 
@@ -87,12 +90,12 @@ module.exports = {
       console.log(verify);
       const result = await user.findAll({
         where: {
-          id: verify.id,
+          nim: verify.nim,
         },
       });
 
       res.status(200).send({
-        id: result[0].id,
+        nim: result[0].nim,
         username: result[0].username,
       });
     } catch (err) {
@@ -111,7 +114,7 @@ module.exports = {
         },
         {
           where: {
-            id: verify.id,
+            nim: verify.nim,
           },
         }
       );
