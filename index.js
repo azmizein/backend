@@ -14,6 +14,6 @@ const { authRoutes } = require("./routers");
 server.use("/auth", authRoutes);
 
 server.listen(PORT, () => {
-  //db.sequelize.sync({ force: true });
+  db.sequelize.sync({ alter: true });
   console.log("Success Running at PORT: " + PORT);
 });

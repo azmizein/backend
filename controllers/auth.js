@@ -13,7 +13,6 @@ module.exports = {
       const { username, email, password } = req.body;
 
       if (password.length < 8) throw "password min 8 character"
-      if (email == user.email) throw "Email Already Taken"
 
       const salt = await bcrypt.genSalt(10);
 
@@ -25,6 +24,8 @@ module.exports = {
         email,
         password: hashPass,
       });
+
+      // if (email == user.email) throw "email already taken"
 
       const token = jwt.sign({ nim: user.nim }, "azmi", { expiresIn: "1h" });
 
@@ -59,7 +60,7 @@ module.exports = {
         },
         raw: true,
       });
-      if (nimExist === null) throw "nim not found";
+      if (nimExist === null) throw "user not found";
 
       const isValid = await bcrypt.compare(password, nimExist.password);
 

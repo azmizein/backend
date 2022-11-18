@@ -28,12 +28,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       unique: {
-        msg: 'Oops. Looks like you already have an account with this email address. Please try to login.',
+        msg: 'Email already exist',
     },
     },
     password: {
       type:DataTypes.STRING,
       allowNull: false,
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
   }, {
     sequelize,
