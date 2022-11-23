@@ -11,7 +11,7 @@ server.use(cors());
 server.use(bearerToken());
 
 const { authRoutes } = require("./routers");
-server.use("/auth", authRoutes);
+server.use(authRoutes);
 
 server.listen(PORT, () => {
   db.sequelize.sync({ alter: true });

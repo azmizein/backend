@@ -1,7 +1,7 @@
 const db = require("../models");
 const user = db.User;
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const transporter = require("../helpers/transporter");
 const fs = require("fs");
 const handlebars = require("handlebars");
@@ -25,15 +25,13 @@ module.exports = {
         password: hashPass,
       });
 
-      // if (email == user.email) throw "email already taken"
-
-      const token = jwt.sign({ nim: user.nim }, "azmi", { expiresIn: "1h" });
+      const token = jwt.sign({ email: email , username:username}, "azmi", { expiresIn: "10m" });
 
       const tempEmail = fs.readFileSync("./template/email.html", "utf-8");
       const tempCompile = handlebars.compile(tempEmail);
       const tempResult = tempCompile({
         username,
-        link: `http://localhost:3000/verification/${token}`,
+        link: `http://localhost:2000/verification/${token}`,
       });
 
       await transporter.sendMail({
@@ -43,7 +41,7 @@ module.exports = {
         html: tempResult,
       });
 
-      res.status(200).send("Register Success");
+      res.status(200).send("Register Success, Please check your email");
     } catch (err) {
       console.log(err);
       res.status(400).send(err);
@@ -62,9 +60,13 @@ module.exports = {
       });
       if (nimExist === null) throw "user not found";
 
+
       const isValid = await bcrypt.compare(password, nimExist.password);
 
       if (!isValid) throw "nim or password incorrect";
+
+      if (nimExist.isVerified == false)
+        throw 'user is not verified';
 
       const token = jwt.sign(
         { username: nimExist.username, nim: nimExist.nim },
@@ -104,9 +106,11 @@ module.exports = {
     }
   },
 
-  verification: async (req, res) => {
+  verification: async (req, res, next) => {
+   const {token} = req.params;
     try {
-      const verify = jwt.verify(req.token, "azmi");
+      const verify = jwt.verify(token, "azmi");
+     
       console.log(verify);
 
       await user.update(
@@ -115,11 +119,37 @@ module.exports = {
         },
         {
           where: {
-            nim: verify.nim,
+            email: verify.email,
           },
-        }
+        }, 
       );
-      res.status(200).send("Success Verification");
+
+      const verifiedUser = await user.findOne({
+        where: {
+          email: verify.email,
+        }
+      })
+
+      const {username, email, nim} = verifiedUser.dataValues;
+
+      const tempEmail = fs.readFileSync(
+        './template/VerificationEmail.html',
+        'utf-8'
+      );
+
+      const tempCompile = handlebars.compile(tempEmail);
+      const tempResult = tempCompile({
+        username, email, nim,
+      })
+
+      await transporter.sendMail({
+        from: 'Admin',
+        to: email,
+        subject: 'Verification Success',
+        html: tempResult,
+      })
+
+      res.redirect('http://localhost:3000/login')
     } catch (err) {
       console.log(err);
       res.status(400).send(err);
